@@ -1,66 +1,91 @@
 package org.example;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.Select;
-
-import java.util.List;
 
 public class TesteCadastro {
+    private WebDriver driver;
+    private DSL dsl;
+    private CampoTreinamentoPage page;
+    @Before
+    public void inicializa(){
+        System.setProperty("webdriver.chrome.driver", "C://Users//luize//Documents//drivers//chromedriver.exe");
+        driver = new ChromeDriver();
+        driver.manage().window().setSize(new Dimension(1200, 735));
+        driver.get("file:///C:/Users/luize/Downloads/campo_treinamento/componentes.html");
+        dsl = new DSL(driver);
+        page = new CampoTreinamentoPage(driver);
+    }
+
+    @After
+    public void finaliza(){
+        driver.quit();
+    }
 
     @Test
-    public void testeCadastro(){
-        System.setProperty("webdriver.chrome.driver", "C://Users//luize//Documents//drivers//chromedriver.exe");
-        WebDriver driver = new ChromeDriver();
-//      driver.manage().window().setSize(new Dimension(1200, 735));
-        driver.get("file:///C:/Users/luize/Downloads/campo_treinamento/componentes.html");
+    public void deveRealizarCadastroComSucesso(){
+        page.setNome("Wagner");
+        page.setSobrenome("Costa");
+        page.setSexoMasculino();
+        page.setComidaPizza();
+        page.setEscolaridade("Superior");
+        page.setEsporte("Futebol");
+        page.cadastrar();
 
-        // Teste elemento Nome
-        driver.findElement(By.id("elementosForm:nome")).sendKeys("Luiz Eduardo");
-        Assert.assertEquals("Luiz Eduardo", driver.findElement(By.id("elementosForm:nome")).getAttribute("value"));
+        Assert.assertTrue(page.obterResultadoCadastro().startsWith("Cadastrado!"));
+        Assert.assertTrue(page.obterNomeCadastro().endsWith("Wagner"));
+        Assert.assertEquals("Sobrenome: Costa",page.obterSobrenomeCadastro());
+        Assert.assertEquals("Sexo: Masculino", page.obterSexoCadastro());
+        Assert.assertEquals("Comida: Pizza", page.obterComidaCadastro());
+        Assert.assertEquals("Escolaridade: superior", page.obterEscolaridadeCadastro());
+        Assert.assertEquals("Esportes: Futebol", page.obterEsporteCadastro());
+    }
 
-        // Teste elemento sobrenome
-        driver.findElement(By.id("elementosForm:sobrenome")).sendKeys("Borges");
-        Assert.assertEquals("Borges", driver.findElement(By.id("elementosForm:sobrenome")).getAttribute("value"));
+    @Test
+    public void deveValidarNomeObrigatorio(){
+        page.cadastrar();
+        Assert.assertEquals("Nome eh obrigatorio", dsl.alertaObterTextoEAceita());
+    }
 
-        // Teste radio button
-        driver.findElement(By.id("elementosForm:sexo:0")).click();
-        Assert.assertTrue(driver.findElement(By.id("elementosForm:sexo:0")).isSelected());
+    @Test
+    public void deveValidarSobrenomeObrigatorio(){
+        page.setNome("Nome al");
+        page.cadastrar();
+        Assert.assertEquals("Sobrenome eh obrigatorio", dsl.alertaObterTextoEAceita());
+    }
 
-        // Teste checkbox
-        driver.findElement(By.id("elementosForm:comidaFavorita:2")).click();
-        Assert.assertTrue(driver.findElement(By.id("elementosForm:comidaFavorita:2")).isSelected());
+    @Test
+    public void deveValidarSexoObrigatorio(){
+        page.setNome("Nome al");
+        page.setSobrenome("pimba");
+        page.cadastrar();
+        Assert.assertEquals("Sexo eh obrigatorio", dsl.alertaObterTextoEAceita());
+    }
 
-        // Teste Select
-        WebElement element = driver.findElement(By.id("elementosForm:escolaridade"));
-        Select combo = new Select(element);
+    @Test
+    public void deveValidarComidaVegetariana(){
+        page.setNome("Nome al");
+        page.setSobrenome("pimba");
+        page.setSexoMasculino();
+        page.setComidaCarne();
+        page.setComidaVegetariano();
+        page.cadastrar();
+        Assert.assertEquals("Tem certeza que voce eh vegetariano?", dsl.alertaObterTextoEAceita());
+    }
 
-        combo.selectByVisibleText("Superior");
-        Assert.assertEquals("Superior", combo.getFirstSelectedOption().getText());
-
-        // Teste combo
-        WebElement element1 = driver.findElement(By.id("elementosForm:esportes"));
-        Select combo1 = new Select(element1);
-        combo1.selectByVisibleText("Futebol");
-        combo1.selectByVisibleText("Natacao");
-        List<WebElement> allSelectedOptions = combo1.getAllSelectedOptions();
-        Assert.assertEquals(2, allSelectedOptions.size());
-
-        // Clicar botão
-        driver.findElement(By.id("elementosForm:cadastrar")).click();
-        Assert.assertTrue(driver.findElement(By.id("resultado")).getText().startsWith("Cadastrado!"));
-        Assert.assertTrue(driver.findElement(By.id("descnome")).getText().endsWith("Luiz Eduardo"));
-        Assert.assertEquals("Sobrenome: Borges", driver.findElement(By.id("descSobrenome")).getText());
-        Assert.assertEquals("Sexo: Masculino", driver.findElement(By.id("descSexo")).getText());
-        Assert.assertEquals("Comida: Pizza", driver.findElement(By.id("descComida")).getText());
-        Assert.assertEquals("Escolaridade: superior", driver.findElement(By.id("descEscolaridade")).getText());
-        Assert.assertEquals("Esportes: Natacao Futebol", driver.findElement(By.id("descEsportes")).getText());
-        Assert.assertEquals("Sugestoes:", driver.findElement(By.id("descSugestoes")).getText());
-
-        driver.quit();
+    @Test
+    public void deveValidarEsportistaIndeciso(){
+        page.setNome("Nome al");
+        page.setSobrenome("pimba");
+        page.setSexoMasculino();
+        page.setComidaCarne();
+        page.setEsporte("Karate", "O que eh esporte?");
+        page.cadastrar();
+        Assert.assertEquals("Voce faz esporte ou nao?", dsl.alertaObterTextoEAceita());
     }
 }
