@@ -1,29 +1,25 @@
-package org.example;
+package org.example.Test;
+import static org.example.Core.DriverFactory.getDriver;
 
+import org.example.Core.DSL;
+import org.example.Core.DriverFactory;
 import org.junit.*;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Dimension;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.*;
 import java.util.Arrays;
 import java.util.List;
 
 public class TesteCampoTreinamento {
-    private WebDriver driver;
     private DSL dsl;
 
     @Before
     public void inicializa(){
-        System.setProperty("webdriver.chrome.driver", "C://Users//luize//Documents//drivers//chromedriver.exe");
-        driver = new ChromeDriver();
-        driver.manage().window().setSize(new Dimension(1200, 735));
-        driver.get("file:///C:/Users/luize/Downloads/campo_treinamento/componentes.html");
-        dsl = new DSL(driver);
+        getDriver().get("file:///C:/Users/luize/Downloads/campo_treinamento/componentes.html");
+        dsl = new DSL();
     }
 
     @After
     public void finaliza(){
-        driver.quit();
+        DriverFactory.killDriver();
     }
 
     @Test
@@ -106,6 +102,22 @@ public class TesteCampoTreinamento {
 
         Assert.assertEquals("Cuidado onde clica, muitas armadilhas...",
                 dsl.obterTexto(By.className("facilAchar")));
+    }
+
+    @Test
+    public void testJavascript(){
+        JavascriptExecutor js = (JavascriptExecutor) getDriver();
+//      js.executeScript("alert('Testando js via selenium')");
+        js.executeScript("document.getElementById('elementosForm:nome').value = 'Escrita via js'");
+        js.executeScript("document.getElementById('elementosForm:sobrenome').type = 'radio'");
+
+        WebElement element = getDriver().findElement(By.id("elementosForm:nome"));
+        js.executeScript("arguments[0].style.border = arguments[1]", element, "solid 4px red");
+    }
+
+    @Test
+    public void deveClicarBotaoTabela(){
+        dsl.clicarBotaoTabela("Escolaridade", "Mestrado", "Radio", "elementosForm:tableUsuario");
     }
 
 }

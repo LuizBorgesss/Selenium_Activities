@@ -1,32 +1,27 @@
-package org.example;
+package org.example.Test;
+import static org.example.Core.DriverFactory.getDriver;
 
+import org.example.Core.DSL;
+import org.example.Core.DriverFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.Alert;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Dimension;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
+
 
 public class TestAlert {
-    private WebDriver driver;
+
     private DSL dsl;
 
     @Before
     public void inicializa(){
-        System.setProperty("webdriver.chrome.driver", "C://Users//luize//Documents//drivers//chromedriver.exe");
-        driver = new ChromeDriver();
-        driver.manage().window().setSize(new Dimension(1200, 735));
-        driver.get("file:///C:/Users/luize/Downloads/campo_treinamento/componentes.html");
-        dsl = new DSL(driver);
+        getDriver().get("file:///C:/Users/luize/Downloads/campo_treinamento/componentes.html");
+        dsl = new DSL();
     }
 
     @After
     public void finaliza(){
-        driver.quit();
+        DriverFactory.killDriver();
     }
 
     @Test
